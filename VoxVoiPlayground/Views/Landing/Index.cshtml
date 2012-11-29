@@ -1,0 +1,65 @@
+﻿@{
+    ViewBag.Title = "Welcome to VoxVoi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/blue.css")" />
+
+
+<div class="page-container tab-content">
+    <div class="tab-pane active">
+        <div class="row">
+            <article class="span12">
+                <h2>What is VoxVoi?</h2>
+                <p>VoxVoi is a higly scalable and available service that provides you with an easy way to create a phone center in the cloud. The process is easy peasy as: <strong>Sign up, Get a number, Setup your menu.</strong></p>
+                <p>You can also do things other services can't, like connect to a backend database or a webservice and dynamically return information to your users using Text-to-Speech with one of our supported languages. Oh, and before I forget, there will be an API for developers as well!</p>
+                <p>Sound complex? It's not! Our service will guide you, step by step how to do it, so even can't change a tyre, you'll still be able to use our service.</p>
+            </article>
+        </div>
+        <div class="row">
+            <article class="span12">
+                <h2>How does it work?</h2>
+                <p>For the telco part we're using the awesome services provided by Twilio. The rest is magic code we created using top notch technologies that would sound weird to end-users but classy to developers.</p>
+                <p>If you're still reading this, then you're interested in the technologies, so we'll be releasing more info very soon for you only!</p>
+            </article>
+        </div>
+        <div class="row">
+            <article class="span12">
+                <h2>Ok! I'm sold!</h2>
+                <p>You like our idea and the service we're building, so we guess the next step is that you want to test it.</p>
+                <p>We have good news, in the next few weeks we'll be releasing a private beta to a number of people. If you want to be one of them, use the form below to sign-up. We don't spam, that's a promise.</p>
+
+                <h4>Sign-up</h4>
+                <p></p>
+                <!-- Begin MailChimp Signup Form -->
+                <form action="http://datafire.us1.list-manage.com/subscribe/post?u=af6ed8e634f2d9f26c24952c7&amp;id=c956f44d98" method="post" 
+                      id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" target="_blank" novalidate>
+                    <fieldset>
+                        
+                        <label class="control-label" for="mce-EMAIL">Email address:</label>
+                        <div class="controls">
+                            <div class="input-prepend">
+                                <span class="add-on"><span class="awe-envelope"></span></span>
+                                <input id="mce-EMAIL" placeholder="email address" type="email" name="EMAIL" value="" required>
+                                <input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="btn btn-small">
+                            </div>
+                        </div>
+                        
+                    </fieldset>
+                </form>
+                
+                <!--End mc_embed_signup-->
+            </article>
+            <article class="span12">
+                <h2>Tracking our beta progress</h2>
+                <p>We'll be releasing information regarding our beta and how are code monkeys are going forward with features on our site and on the mailing list</p>
+                <p>We also have a cool looking progress bar below which can give you a hint on were we stand. Of course, we're talking about about software and there is always a chance
+                    to go from 70% to 20% because we found a godzilla bug in our code but, hey at least you'll know about it. That's something, right?</p>
+                <h5>Current progress is at 71%</h5>
+                <div class="progress">
+                    <div class="bar" style="width: 71%;"></div>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,14 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+}
+<h2>Dashboard</h2>
+            <p>Select an action below</p>
+  <div class="nav-secondary inverse">
+                <nav>
+                    <ul>
+                        <li><a class="wuxify-me" href="@Url.Action("Index", "Queue")"><span class="awe-envelope"></span>Queues</a></li>
+                        <li><a class="wuxify-me" href="@Url.Action("Index","Conference")"><span class="awe-phone"></span>Conferences</a></li>
+                        <li><a class="wuxify-me" href="@Url.Action("Index","Transcription")"><span class="awe-edit"></span>Transcriptions</a></li>
+                    </ul>
+                </nav>
+            </div>

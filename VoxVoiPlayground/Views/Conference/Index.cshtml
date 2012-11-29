@@ -1,0 +1,230 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Scripts/jquery.signalR-0.5.3.min.js"></script>
+<script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
+<script src="~/Scripts/sammy-0.7.1.min.js"></script>
+<script src="/signalr/hubs" type="text/javascript"></script>
+
+
+<link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/blue.css")" />
+
+
+<script type="text/javascript">
+    
+    
+    // SignalR
+
+    $(document).ready(function () {
+
+        var conference = $.connection.conference;
+        
+        // View Models
+        function conferenceViewModel(confId, friendlyName, numParticipants, dateCreated, dateUpdated, status) {
+            var self = this;
+
+            self.confId = confId;
+            self.numParticipants = numParticipants;
+            self.friendlyName = friendlyName;
+            self.dateCreated = dateCreated;
+            self.dateUpdated = dateUpdated;
+            self.status = status;
+            self.url = ko.computed(function () {
+                return "/conference" + "#" + confId;
+            });
+        }
+        
+        function participantViewModel(confId, callId, muted) {
+            var self = this;
+            self.confId = confId;
+            self.callId = callId;
+            self.muted = muted;
+        }
+        //End View Models
+
+        function appViewModel() {
+
+            var conn = $.hubConnection();
+            var self = this;
+
+            self.selectedConferenceSid = ko.observable();
+            
+            // Start Sammy Routes
+
+            // Participant behavior    
+            self.updateParticipants = function (conferenceSid) { location.hash = conferenceSid; };
+            
+            Sammy(function () {
+                this.get('#:conferenceSid', function () {
+                    self.selectedConferenceSid(this.params.conferenceSid);
+                    conference.listParticipants(this.params.conferenceSid);
+                });
+                
+                //this.get('', function () { this.app.runRoute('get', '#'); });
+            }).run();
+
+            //End Sammy Routes
+
+            // Start conference data
+            self.conferences = ko.observableArray([]);
+            var conferences = self.conferences;
+            this.typeToShow = ko.observable("all");
+
+            self.conferences = ko.computed(function () {
+                var conferenceType = self.typeToShow();
+                if (conferenceType == "all") return conferences();
+                return ko.utils.arrayFilter(conferences(), function(conf) {
+                    return conf.status == conferenceType;
+                });
+            }, this);
+
+            self.participants = ko.observableArray([]);
+            var participants = self.participants;
+
+            conn.logging = true;
+            conn.start();
+
+            conference.getAllConferenceCalls = function(allConferences) {
+                var conferenceCalls = $.map(allConferences, function(item) {
+                    return new conferenceViewModel(item.Sid, item.FriendlyName, 0, item.DateCreated, item.DateUpdated, item.Status);
+                });
+                conferences(conferenceCalls);
+            };
+            // End Conference data
+            
+            // Start participant data
+            conference.getAllParticipants = function(allParticipants) {
+                var conferenceParticipants = $.map(allParticipants, function(item) {
+                    return new participantViewModel(item.ConferenceSid, item.CallSid, item.Muted);
+                });
+                participants(conferenceParticipants);
+            };
+
+            conference.addParticipant = function(p) {
+                participants.push(new participant(p.confId, p.callId, p.Muted));
+            };
+
+            self.kickParticipant = function (item) {
+                conference.kickParticipant(item.confId, item.callId);
+            };
+
+            self.muteParticipant = function(item) {
+                conference.muteParticipant(item.confId, item.callId);
+            };
+
+            self.unMuteParticipant = function(item) {
+                conference.unMuteParticipant(item.confId, item.callid);
+            };
+
+            function participant(confId, callId, muted) {
+                var self = this;
+            
+                self.confId = confId;
+                self.callId = callId;
+                self.muted = muted;
+            }
+            // End participant data
+            
+            // Animation callbacks
+            this.showElement = function (elem) { if (elem.nodeType === 1) $(elem).hide().slideDown(); };
+            this.hideElement = function (elem) { if (elem.nodeType === 1) $(elem).slideUp(function() { $(elem).remove(); }); };
+            
+            // Model initilization code
+            this.init = function () {
+                // Call function on hub
+                conference.getAll();
+            };
+        }
+
+        ko.bindingHandlers.fadeVisible = {
+            init: function (element, valueAccessor) {
+
+                var value = valueAccessor();
+                $(element).toggle(ko.utils.unwrapObservable(value)); 
+            },
+            update: function (element, valueAccessor) {
+
+                var value = valueAccessor();
+                ko.utils.unwrapObservable(value) ? $(element).fadeIn() : $(element).fadeOut();
+            }
+        };
+
+        // Activates knockout.js
+        var model = new appViewModel();
+        ko.applyBindings(model);
+         //Start the connection
+        $.connection.hub.start(function () {
+            model.init();
+        });
+    });
+
+</script>
+<script type="text/html" id="confTemplate">
+    <!--Data Template-->
+    <tr>
+        <td><a href="#" data-bind="attr: {href: url} "><span data-bind="text: confId"></span></a></td>
+        <td><a href="#" data-bind="text: friendlyName"></a></td>
+        <td><time><span data-bind="text: dateCreated"></span></time></td>
+        <td><time><span data-bind="text: dateUpdated"></span></time></td>
+        <td><span class="label label-important" data-bind="text: status"></span></td>
+    </tr>
+</script>
+<script type="text/html" id="participantTemplate">
+    <!--Data Template-->
+    <tr>
+        <td><span data-bind="text: confId"></span></td>
+        <td><a href="#" data-bind="text: callId"></a></td>
+        <td><span data-bind="text: muted"></span></td>
+        <td><a href="#"><span data-bind="click: kickParticipant">Kick</span></a> | <a href="#"><span data-bind="click: muteParticipant">Mute</span></a> | <a href="#"><span data-bind="click: unMuteParticipant">Unmute</span></a></td>
+    </tr>
+</script>
+
+
+<div class="content">  
+    <div class="page-container">
+        <div class="tab-pane active">
+
+        
+            <h3>List of conferences</h3>
+            <p>Filter by status:</p>
+            <input type='radio' name="type" value='all' data-bind='checked: typeToShow' /><span class="">All</span>
+            <input type='radio' name="type" value='completed' data-bind='checked: typeToShow' /><span class="">Completed</span>
+            <input type='radio' name="type" value='in-progress' data-bind='checked: typeToShow' /><span class="">In Progress</span>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Friendly Name</th>
+                        <th>Date Created</th>
+                        <th>Date Ended</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="template: { name: 'confTemplate', foreach: conferences, beforeRemove: hideElement, afterAdd: showElement }, visible: conferences().length > 0">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="content">  
+    <div class="page-container">
+        <div class="tab-pane active">
+            <h3>List of participants</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Conference Id</th>
+                        <th>Call Id</th>
+                        <th>Muted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="template: { name: 'participantTemplate', foreach: participants, beforeRemove: hideElement, afterAdd: showElement }">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

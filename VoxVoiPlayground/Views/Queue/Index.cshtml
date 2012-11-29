@@ -1,0 +1,111 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Scripts/jquery.signalR-0.5.3.min.js"></script>
+<script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
+<script src="~/Scripts/sammy-0.7.1.min.js"></script>
+<script src="/signalr/hubs" type="text/javascript"></script>
+
+
+<link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/blue.css")" />
+
+<h2>Queues</h2>
+<script type="text/javascript">
+
+    $(document).ready(function() {
+
+        var queue = $.connection.queue;
+
+        function queueViewModel(queueId, friendlyName, currentSize, avgTime, maxSize) {
+            var self = this;
+
+            self.queueId = queueId;
+            self.currentSize = currentSize;
+            self.friendlyName = friendlyName;
+            self.avgTime = avgTime;
+            self.maxSize = maxSize;
+        }
+
+        function appViewModel() {
+            
+            var conn = $.hubConnection();
+            var self = this;
+
+            conn.logging = true;
+            conn.start();
+            
+            self.queues = ko.observableArray([]);
+            var queues = self.queues;
+
+            queue.getAllQueues = function (q)
+            {
+                var allQueues = $.map(q, function (item) {
+                    return new queueViewModel(item.Sid, item.FriendlyName, item.CurrentSize, item.AverageWaitTime, item.MaxSize);
+                });
+                queues(allQueues);
+            };
+            // Animation callbacks
+            this.showElement = function (elem) { if (elem.nodeType === 1) $(elem).hide().slideDown(); };
+            this.hideElement = function (elem) { if (elem.nodeType === 1) $(elem).slideUp(function () { $(elem).remove(); }); };
+
+            // Model initilization code
+            this.init = function () {
+                // Call function on hub
+                queue.getAll();
+            };
+        }
+        
+        ko.bindingHandlers.fadeVisible = {
+            init: function (element, valueAccessor) {
+
+                var value = valueAccessor();
+                $(element).toggle(ko.utils.unwrapObservable(value));
+            },
+            update: function (element, valueAccessor) {
+
+                var value = valueAccessor();
+                ko.utils.unwrapObservable(value) ? $(element).fadeIn() : $(element).fadeOut();
+            }
+        };
+        
+        // Activates knockout.js
+        var model = new appViewModel();
+        ko.applyBindings(model);
+        //Start the connection
+        $.connection.hub.start(function () {
+            model.init();
+        });
+
+    });
+</script>
+<script type="text/html" id="queueTemplate">
+    <!--Data Template-->
+    <tr>
+        <td><span data-bind="text: queueId"></span></td>
+        <td><a href="#" data-bind="text: friendlyName"></a></td>
+        <td><span data-bind="text: avgTime"></span></td>
+        <td><span data-bind="text: currentSize"></span></td>
+        <td><span data-bind="text: maxSize"></span></td>
+    </tr>
+</script>
+<div class="content">  
+    <div class="page-container">
+        <div class="tab-pane active">
+            <h3>List of Queues</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Queue Id</th>
+                        <th>Friendly Name</th>
+                        <th>Avg WaitTime (sec)</th>
+                        <th>Calls Queued</th>
+                        <th>Max Size</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="template: { name: 'queueTemplate', foreach: queues, beforeRemove: hideElement, afterAdd: showElement }">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

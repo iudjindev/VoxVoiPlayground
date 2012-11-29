@@ -1,0 +1,50 @@
+﻿@using System.Configuration
+@using Twilio
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var client = new TwilioRestClient(ConfigurationManager.AppSettings["account"], ConfigurationManager.AppSettings["auth"]);
+    var transcriptions = client.ListTranscriptions().Transcriptions;
+}
+
+<link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/blue.css")" />
+
+<h2>Transcriptions</h2>
+
+<div class="content">  
+    <div class="page-container">
+        <div class="tab-pane active">
+            <h3>List of Transcriptions (@transcriptions.Count)</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Transcription Id</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Text</th>
+                        <th>Date Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        foreach (var transcribe in transcriptions)
+                        {
+
+
+                            <tr>
+                                <td><span>@transcribe.Sid</span></td>
+                                <td><span>@transcribe.Status</span></td>
+                                <td><span>@transcribe.Duration</span></td>
+                                <td><span>@transcribe.TranscriptionText</span></td>
+                                <td><span>@transcribe.DateUpdated</span></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
